@@ -6,6 +6,7 @@ pipeline {
         SONAR_URL = "http://34.229.151.88:9000"
         GIT_REPO_NAME = "END-to-END-project-jenkins-with-ArgoCD"
         GIT_USER_NAME = "abhishekofficial552266"
+        APP_DIR = "java-maven-sonar-argocd-helm-k8s/spring-boot-app"
     }
 
     stages {
@@ -21,6 +22,8 @@ pipeline {
                 sh '''
                     export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
                     export PATH=$JAVA_HOME/bin:$PATH
+
+                    cd ${APP_DIR}
                     java -version
                     mvn clean package
                 '''
@@ -33,6 +36,8 @@ pipeline {
                     sh '''
                         export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
                         export PATH=$JAVA_HOME/bin:$PATH
+
+                        cd ${APP_DIR}
                         mvn sonar:sonar \
                         -Dsonar.login=$SONAR_AUTH_TOKEN \
                         -Dsonar.host.url=${SONAR_URL}
@@ -44,7 +49,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    cd java-maven-sonar-argocd-helm-k8s/spring-boot-app
+                    cd ${APP_DIR}
                     docker build -t ${DOCKER_IMAGE} .
                 '''
             }
@@ -65,8 +70,6 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                     sh '''
-                        cd ${WORKSPACE}
-
                         git config user.email "abhishekkarmakar229@gmail.com"
                         git config user.name "Abhishek Karmakar"
 
